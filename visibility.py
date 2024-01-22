@@ -8,10 +8,11 @@ have the (cartesian) coordinates Acoord and Bccoord aroud a
 spherical planet on radius R (in meters). The coord should be 
 length 3 iterable 
 
-Acoord and Bcoord ar either lengtht 3 iterable, or arrays of
-(same) shape (3,:)
+Acoord and Bcoord ar either length 3 iterable, or arrays of
+(same) shape (3,:). The center of the planet is at coordinate (0,0,0)
 
-The devault value correspond to the earth with a slightly too think atmosphere
+The default value correspond to the earth with a slightly too 
+thick atmosphere
 """
   def v2(npv): return (npv**2).sum(0)
   Acoord=np.array(Acoord)
