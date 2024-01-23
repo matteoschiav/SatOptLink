@@ -23,12 +23,15 @@ niceparams = [43.6274, 7.2991, 1200, "Nice"]
 micius = ns.Satellite(tle, simType= "tle")
 
 paris = ns.GroundStation(*parisparams)
+nice = ns.GroundStation(*niceparams)
 
 # Creating the channel
 TESTCHANNEL_paris = ns.SimpleDownlinkChannel(micius, paris)
+TESTCHANNEL_nice = ns.SimpleDownlinkChannel(micius, nice)
 
 # Calculating the channel parameters for the datetime list
 results_paris = TESTCHANNEL_paris.calculateChannelParameters(datetime_list)
+results_nice = TESTCHANNEL_nice.calculateChannelParameters(datetime_list)
 
 nice = ns.GroundStation(*niceparams)
 
