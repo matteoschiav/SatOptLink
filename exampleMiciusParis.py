@@ -41,7 +41,7 @@ wl = 810e-9
 parisparams = [48.85, 2, 35, "Paris"]
 kepler=[a, e, i, omega, Omega, v, PositionAngleType.TRUE, gcrf, epoch, MU]
 
-micius = ns.Satellite(kepler, simType= "keplerian")
+micius = ns.Satellite(tle, simType="tle")
 #delft = ns.GroundStation(*delftparams)
 paris = ns.GroundStation(*parisparams)
 

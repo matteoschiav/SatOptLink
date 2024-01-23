@@ -84,17 +84,17 @@ class Satellite:
 
     simTypeAllowed = ('tle', 'polOrbPass', "keplerian", '')
 
-    def __init__(self, kepler="",  tle='', simType='tle', incAngle=0, satAlt=0):
+    def __init__(self, params, simType='tle', incAngle=0, satAlt=0):
         self.simType = simType
 
         if simType == 'tle':
-            """ Initialization of the satellite orbit from a TLE list """
-            self.tleList = tle
+            """ Initializpaation of the satellite orbit from a TLE list """
+            self.tleList = params
             self.tleObject = TLE(*self.tleList)
             self.propagator = TLEPropagator.selectExtrapolator(self.tleObject)
-        if simType == 'keplerian':
+        elif simType == 'keplerian':
             """ Initialization of the satellite orbit from a Keplerian list """
-            self.keplerList = kepler
+            self.keplerList = params
             self.keplerObject = KeplerianOrbit(*self.keplerList)
             self.propagator = KeplerianPropagator(self.keplerObject)
         elif simType == 'polOrbPass':
@@ -124,7 +124,7 @@ class Satellite:
         return (self.simType == 'polOrbPass')
 
     def isTLE(self):
-        return (self.simType == 'tle')
+        return (self.simType == "tle")
 
     def isKeplerian(self):
         return (self.simType == 'keplerian')
@@ -197,6 +197,8 @@ class SimpleDownlinkChannel:
             - length [m]
             - elevation [degrees]
         """
+        print(f"isTlE: {self.satellite.isTLE()}")
+        print(f"isKeplerian: {self.satellite.isKeplerian()}")
 
         if self.satellite.isPolOrbPass():
             # calculate the orbit parameters using the [Moll et al.] model.
@@ -239,6 +241,7 @@ class SimpleDownlinkChannel:
                 frameTrans = inertialFrame.getStaticTransformTo(self.groundStation.frame, absDateList[i])
 
                 channelLength[i] = frameTrans.transformPosition(pos_tmp).getNorm()
+                print(channelLength[i])
 
                 elevation[i] = np.rad2deg(
                     self.groundStation.frame.getElevation(pv.getPosition(), inertialFrame, absDateList[i]))
