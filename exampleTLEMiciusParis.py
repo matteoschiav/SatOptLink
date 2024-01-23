@@ -15,7 +15,7 @@ tle = (tle_line_1, tle_line_2)
 
 parisparams = [48.8566, 2.3522, 35, "Paris"]
 
-micius = ns.Satellite(tle, simType= "keplerian")
+micius = ns.Satellite(tle, simType= "tle")
 
 paris = ns.GroundStation(*parisparams)
 

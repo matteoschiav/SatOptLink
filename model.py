@@ -173,10 +173,10 @@ class SimpleDownlinkChannel:
         List containing start and end date for downlink channel
     """
 
-    def __init__(self, sat, gs, timeList):
+    def __init__(self, sat, gs):
         self.satellite = sat
         self.groundStation = gs
-        self.timeList = timeList
+        # self.timeList = timeList
 
     def calculateChannelParameters(self, timeList):
         """ Calculate channel paramters
@@ -241,7 +241,7 @@ class SimpleDownlinkChannel:
                 frameTrans = inertialFrame.getStaticTransformTo(self.groundStation.frame, absDateList[i])
 
                 channelLength[i] = frameTrans.transformPosition(pos_tmp).getNorm()
-                print(channelLength[i])
+
 
                 elevation[i] = np.rad2deg(
                     self.groundStation.frame.getElevation(pv.getPosition(), inertialFrame, absDateList[i]))
