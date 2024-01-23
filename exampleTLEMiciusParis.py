@@ -5,7 +5,9 @@ from datetime import datetime, timedelta
 import pandas as pd
 
 start = pd.Timestamp(datetime.now())
+start = pd.Timestamp(datetime(2024, 1, 23, 23))
 end = pd.Timestamp(datetime.now()+timedelta(hours= 12))
+end = pd.Timestamp(datetime(2024, 1, 24, 1))
 t = np.linspace(start.value, end.value, 100000)
 datetime_list = pd.to_datetime(t)
 
@@ -27,8 +29,16 @@ results_paris = TESTCHANNEL_paris.calculateChannelParameters(datetime_list)
 #             - elevation [degrees]
 #             - timeList (datetime)
 
-plt.style.use("dark_background")
-plt.figure(figsize=(21, 9))
-plt.plot(results_paris[2], results_paris[1])
+index = np.where(results_paris[1] > 30)
+
+filtered_timelist = (results_paris[2])[index]
+filtered_elevation = (results_paris[1])[index]
+
+plt.figure(dpi=600)
+plt.title("Elevation as a Function of Time")
+plt.ylabel("Elevation (degrees)")
+plt.xlabel("Time (GMT+1)")
+plt.plot(filtered_timelist, filtered_elevation, color="#710193")
+plt.grid(color="gray")
 plt.xticks(rotation=45)
 plt.show()
