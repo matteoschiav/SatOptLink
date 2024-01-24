@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+import argparse
+import lowtran #lowtran-piccia 
+import pandas as pd
+import numpy as np
+import csv
 
 
 def main(groundsation, short=200, long=2000, step=20, model=5, target_wl=810):
@@ -13,8 +17,8 @@ def main(groundsation, short=200, long=2000, step=20, model=5, target_wl=810):
         long (int, optional): The maximum wavelength in nanometers. Default is 2000.
         step (int, optional): The step between wavelengths in nanometers. Default is 20.
         model (int, optional): The atmospheric model to use (e.g., 5 for mid-latitude winter). Default is 5.
-        target_wl (int, optional): The target wavelength in nanometers if you want to use a single wavelength.
-                                  Default is 810.
+        target_wl (int, optional): The target wavelength in nanometers if you want to use a single wavelength.Default is 810.
+                                    
 
     Additional Atmospheric Model Parameters:
         - itype (int): Specifies the type of atmosphere, where 3 represents a standard atmosphere.
@@ -22,7 +26,7 @@ def main(groundsation, short=200, long=2000, step=20, model=5, target_wl=810):
         - im (int): Specifies the aerosol model, where 0 represents a rural aerosol model.
         - ihaze (int): Specifies the haze model, where 5 represents a continental model.
         - h1 (float): Altitude of the ground station above sea level in kilometers.
-        - angle (array): Array of zenith angles ranging from 30 to 90 degrees with a step of 0.1 degree.
+        - angle (array): Array of zenith angles ranging from X to Y degrees with a step of Z degree.
 
     The function generates atmospheric transmission data based on wavelength, ground station altitude,
     atmospheric model, and zenith angles. It then saves this data to a CSV file named 'transmission_data5.csv'.
