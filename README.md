@@ -28,5 +28,5 @@ SatOptLink is developped by:
 
 * Matteo Schiavon
 * Aeden Leal
-* Hanafi Issahane
+* Hanafi Issahnane
 * Frédéric Grosshans
