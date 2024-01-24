@@ -41,4 +41,11 @@ plt.xlabel("Time (GMT+1)")
 plt.plot(filtered_timelist, filtered_elevation, color="#710193")
 plt.grid(color="gray")
 plt.xticks(rotation=45)
+
+zenith_transmittance = 0.5
+
+filtered_transmittance = zenith_transmittance ** (1/np.sin(np.deg2rad(filtered_elevation)))
+
+plt.figure()
+plt.plot(filtered_timelist, filtered_transmittance)
 plt.show()
