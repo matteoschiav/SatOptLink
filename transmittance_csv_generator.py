@@ -4,11 +4,11 @@
 # In[ ]:
 
 
-def main(obsalt=0.0, short=200, long=2000, step=20, model=5, target_wl=810):
+def main(groundsation, short=200, long=2000, step=20, model=5, target_wl=810):
     """This function generates atmospheric transmission data for a given ground station.
 
     Parameters:
-        obsalt (float, optional): The altitude of the ground station in kilometers. Default is 0.0.
+        groundsation (model.GroundStation): The ground station (observer).
         short (int, optional): The minimum wavelength in nanometers. Default is 200.
         long (int, optional): The maximum wavelength in nanometers. Default is 2000.
         step (int, optional): The step between wavelengths in nanometers. Default is 20.
@@ -27,6 +27,7 @@ def main(obsalt=0.0, short=200, long=2000, step=20, model=5, target_wl=810):
     The function generates atmospheric transmission data based on wavelength, ground station altitude,
     atmospheric model, and zenith angles. It then saves this data to a CSV file named 'transmission_data5.csv'.
     """
+    obsalt = groundsation.altitude
 
     #generating zenith angles from 30 to 90 degrees with a step of 0.1 degree
     zenang = np.arange(30, 90.1, 0.1)
