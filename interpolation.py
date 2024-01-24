@@ -1,8 +1,8 @@
-import matplotlib.pyplot as plt
+
 import numpy as np
 
 #charger le fichier CSV
-data = np.genfromtxt('transmission_data8.csv', delimiter=',', skip_header=1)
+data = np.genfromtxt('transmission_data5.csv', delimiter=',', skip_header=1)
 
 #on extrait les données d'angle et de transmittance
 zenith_angles = data[:, 0]
@@ -15,6 +15,3 @@ elevations_satellite = [10.0, 20.0, 30.0, 40.0, 50.0] #exemple
 transmittance_interpolated = np.interp(elevations_satellite, zenith_angles, transmittance_values)
 
 #transmittance_interpolated contient les valeurs interpolées de transmittance pour les élévations données.
-plt.figure()
-plt.plot(90-zenith_angles, transmittance_values)
-plt.show()
