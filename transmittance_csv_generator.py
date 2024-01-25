@@ -1,46 +1,44 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import argparse
-import lowtran #lowtran-piccia 
-import pandas as pd
+
 import numpy as np
 import csv
+import matplotlib.pyplot as plt
+import lowtran
 
-
-def main(groundsation, short=200, long=2000, step=20, model=5, target_wl=810):
-    """This function generates atmospheric transmission data for a given ground station.
-
-    Parameters:
-        groundsation (model.GroundStation): The ground station (observer).
-        short (int, optional): The minimum wavelength in nanometers. Default is 200.
-        long (int, optional): The maximum wavelength in nanometers. Default is 2000.
-        step (int, optional): The step between wavelengths in nanometers. Default is 20.
-        model (int, optional): The atmospheric model to use (e.g., 5 for mid-latitude winter). Default is 5.
-        target_wl (int, optional): The target wavelength in nanometers if you want to use a single wavelength.Default is 810.
-                                    
-
-    Additional Atmospheric Model Parameters:
-        - itype (int): Specifies the type of atmosphere, where 3 represents a standard atmosphere.
-        - iemsct (int): Specifies the scattering model, where 0 represents no scattering.
-        - im (int): Specifies the aerosol model, where 0 represents a rural aerosol model.
-        - ihaze (int): Specifies the haze model, where 5 represents a continental model.
-        - h1 (float): Altitude of the ground station above sea level in kilometers.
-        - angle (array): Array of zenith angles ranging from X to Y degrees with a step of Z degree.
-
-    The function generates atmospheric transmission data based on wavelength, ground station altitude,
-    atmospheric model, and zenith angles. It then saves this data to a CSV file named 'transmission_data5.csv'.
+def main(obsalt=0.0, target_wl=810, model=5): 
     """
-    obsalt = groundsation.altitude
+This script interacts with the LOWTRAN atmospheric model to compute and visualize the transmission data for a specific wavelength across a range of zenith angles. The focus is on providing detailed insights into ground-to-space transmission at a single wavelength, particularly useful for applications in atmospheric sciences and satellite communications.
 
-    #generating zenith angles from 30 to 90 degrees with a step of 0.1 degree
-    zenang = np.arange(30, 90.1, 0.1)
+Functions:
+    main(obsalt=0.0, target_wl=810, model=5):
+        Runs the LOWTRAN model for a specific wavelength (default 810 nm) across a range of zenith angles. It generates a CSV file with the calculated transmission data and plots the transmission versus zenith angles.
 
-    #defining parameters for the atmospheric model
+        Parameters:
+            obsalt (float): The altitude of the observer/ground station in kilometers. Default is 0.0 km.
+            target_wl (float): The target wavelength in nanometers for which the transmission data is to be calculated. Default is 810 nm.
+            model (int): The LOWTRAN atmospheric model to be used for calculations. Default is model 5 (subarctic winter).
+
+        The function computes the transmission data using LOWTRAN, focusing on the target wavelength over a range of zenith angles from 0 to 60 degrees (with a step of 0.1 degrees). It then writes this data to a CSV file named 'transmission_data.csv'. Additionally, it plots the transmission data against the zenith angles, providing a visual representation of how atmospheric transmission varies with the angle at the specified wavelength.
+
+        The script ensures that the data for the specific wavelength is accurately extracted and correctly aligned with each zenith angle, thus providing precise and reliable results suitable for further analysis in atmospheric transmission studies.
+
+Example Usage:
+    To run the script for an observer altitude of 1 km, target wavelength of 810 nm, and using LOWTRAN model 5, simply call:
+    
+    main(obsalt=1.0, target_wl=810, model=5)
+
+    This will generate the CSV file and display the plot for the specified parameters.
+"""
+
+    zenang = np.arange(0, 60.1, 0.1)  #we generate angles from 0 to 60 with a step of 0.1
+
+    #context for specific wavelength (810 nm)
     context = {
-        "wlshort": short,
-        "wllong": long,
-        "wlstep": step,
+        "wlshort": target_wl,
+        "wllong": target_wl,
+        "wlstep": 20,  # minimum step size
         "model": model,
         "itype": 3,
         "iemsct": 0,
@@ -50,28 +48,30 @@ def main(groundsation, short=200, long=2000, step=20, model=5, target_wl=810):
         "angle": zenang,
     }
 
-    #calling the lowtran.loopangle function to obtain transmission data
     TR = lowtran.loopangle(context).squeeze()
 
-    #displaying the keys and dimensions of the dataset (optional)
-    print(TR.keys())
-    print(TR.dims)
+    #we extract transmission data for 810 nm at each zenith angle
+    transmission_at_target_wl = TR['transmission'].values.flatten()
 
-    #filtering data for the target wavelength (810 nm)
-    target_index = np.abs(TR['wavelength_nm'] - target_wl).argmin()
-    transmission_at_target_wl = TR['transmission'][:, target_index]
-
-    #extracting transmission values as a Python list
-    transmission_values = transmission_at_target_wl.values.tolist()
-
-    #preparing data for the CSV file with zenith angles and transmission values
+    #we prepare the data for CSV
     csv_data = [['Zenith Angle (degrees)', 'Transmission at 810 nm']]
-    csv_data.extend(zip(zenang, transmission_values))
+    csv_data.extend(zip(zenang, transmission_at_target_wl))
 
-    #writing the data to the 'transmission_data5.csv' CSV file
-    with open('transmission_data5.csv', 'w', newline='') as csvfile:
+    #we write the data to CSV
+    with open('transmission_data.csv', 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerows(csv_data)
 
-    print("CSV file 'transmission_data5.csv' created.")
+    print("CSV file 'transmission_data.csv' created.")
+    
+    print(np.size(zenang))
+    print(np.size(transmission_at_target_wl))
+    plt.figure()
+    plt.plot(zenang, transmission_at_target_wl)
+    plt.xlabel('Zenith Angle (degrees)')
+    plt.ylabel('Transmission at 810 nm')
+    plt.title('Ground to Space Transmission')
+    plt.show()
 
+# Test the function
+main()
