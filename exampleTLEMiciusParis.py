@@ -76,15 +76,15 @@ transmittance_values_nice = data_nice_1550[:, 1]
 transmittance_paris_interpolated = np.interp(zenith_to_satellite_paris, zenith_angles_paris, transmittance_values_paris)
 transmittance_nice_interpolated = np.interp(zenith_to_satellite_nice, zenith_angles_nice, transmittance_values_nice)
 
-paris_index = np.where(transmittance_paris_interpolated>0.01)
-nice_index = np.where(transmittance_nice_interpolated>0.01)
-
 lgt_paris = 10*np.log10(transmittance_paris_interpolated)
 lgt_nice = 10*np.log10(transmittance_nice_interpolated)
 
-paris_index =  np.where(transmittance_paris_interpolated>0.01)
-nice_index =  np.where(transmittance_nice_interpolated>0.01)
-
+#paris_index =  np.where(transmittance_paris_interpolated>0.01)
+#nice_index =  np.where(transmittance_nice_interpolated>0.01)
+paris_index = nice_index = np.where((transmittance_paris_interpolated>0.01) * (
+        transmittance_nice_interpolated>0.01))[0]
+print( (paris_index))
+print(paris_index.dtype)
 
 filtered_timelist_nice = filtered_timelist_paris[nice_index]
 filtered_timelist_paris = filtered_timelist_paris[paris_index]
@@ -121,6 +121,10 @@ T_total_paris = TESTCHANNEL_paris.end_to_end(0.3,0.8,1550e-9,transmittance_paris
     r0)
 T_total_nice = TESTCHANNEL_nice.end_to_end(0.3,0.8,1550e-9,transmittance_nice_interpolated, filtered_distance_nice, r0)
 
+Reprate = 1e6
+assert T_total_nice.shape == T_total_paris.shape , "check the time lists"
+EPRpairsnomem = Reprate * T_total_nice* T_total_paris
+EPRpairsQmem = Reprate *np.array([T_total_nice, T_total_paris]).min(0)
 
 plt.figure()
 plt.title("Transmittance (QSS-Micius) as a Function of Time")
@@ -130,5 +134,18 @@ plt.plot(filtered_timelist_paris, T_total_paris, label = "Paris")
 plt.plot(filtered_timelist_nice, T_total_nice, label = "Nice")
 plt.grid(color="gray")
 plt.legend()
+
+deltaT=(filtered_timelist_paris[1]-filtered_timelist_paris[0]).total_seconds()
+def Totpairs(pairpersec, deltaT):
+    return pairpersec.cumsum()*deltaT
+plt.figure()
+plt.semilogy(filtered_timelist_paris,EPRpairsnomem)
+plt.semilogy(filtered_timelist_paris,EPRpairsQmem)
+
+plt.figure()
+plt.semilogy(filtered_timelist_paris,Totpairs(EPRpairsnomem, deltaT))
+plt.semilogy(filtered_timelist_paris,Totpairs(EPRpairsQmem, deltaT))
+plt.grid()
+plt.ylim((1,1e7))
 
 plt.show()
