@@ -19,6 +19,8 @@ tle = (tle_line_1, tle_line_2)
 parisparams = [48.8566, 2.3522, 80, "Paris"]
 niceparams = [43.6274, 7.2991, 1200, "Nice"]
 
+r0=1.5
+
 # Creating an orbitting body from the Satellite class
 micius = ns.Satellite(tle, simType= "tle")
 
@@ -43,6 +45,9 @@ results_nice = TESTCHANNEL_nice.calculateChannelParameters(datetime_list)
 filtered_timelist_paris = (results_paris[2])#[index]
 filtered_elevation_paris = (results_paris[1])#[index]
 filtered_elevation_nice = (results_nice[1])#[index]
+
+filtered_distance_paris = results_paris[0]
+filtered_distance_nice =results_nice[0]
 
 # Plotting the elevation
 plt.figure(dpi=600)
@@ -71,30 +76,59 @@ transmittance_values_nice = data_nice_1550[:, 1]
 transmittance_paris_interpolated = np.interp(zenith_to_satellite_paris, zenith_angles_paris, transmittance_values_paris)
 transmittance_nice_interpolated = np.interp(zenith_to_satellite_nice, zenith_angles_nice, transmittance_values_nice)
 
-# paris_index = np.where(transmittance_paris_interpolated>0.01)
-# nice_index = np.where(transmittance_nice_interpolated>0.01)
+paris_index = np.where(transmittance_paris_interpolated>0.01)
+nice_index = np.where(transmittance_nice_interpolated>0.01)
 
 lgt_paris = 10*np.log10(transmittance_paris_interpolated)
 lgt_nice = 10*np.log10(transmittance_nice_interpolated)
 
+paris_index =  np.where(transmittance_paris_interpolated>0.01)
+nice_index =  np.where(transmittance_nice_interpolated>0.01)
+
+
+filtered_timelist_nice = filtered_timelist_paris[nice_index]
+filtered_timelist_paris = filtered_timelist_paris[paris_index]
+
+filtered_distance_paris = filtered_distance_paris[paris_index]
+filtered_distance_nice = filtered_distance_nice[nice_index]
+
+transmittance_paris_interpolated = transmittance_paris_interpolated[paris_index]
+transmittance_nice_interpolated = transmittance_nice_interpolated[nice_index]
+
+lgt_paris = lgt_paris[paris_index]
+lgt_nice = lgt_nice[nice_index]
 # Plotting transmittance
+
+plt.figure()
+plt.title("Atmospheric Transmittance (QSS-Micius) as a Function of Time")
+plt.ylabel("Transmittance")
+plt.xlabel("Time (GMT+1)")
+plt.plot(filtered_timelist_paris, transmittance_paris_interpolated, label = "Paris")
+plt.plot(filtered_timelist_nice, transmittance_nice_interpolated, label = "Nice")
+plt.grid(color="gray")
+plt.legend()
+
+plt.figure()
+plt.title("Atmospheric Transmittance (QSS-Micius) as a Function of Time")
+plt.ylabel("Transmittance (dB)")
+plt.xlabel("Time (GMT+1)")
+plt.plot(filtered_timelist_paris, lgt_paris, label = "Paris")
+plt.plot(filtered_timelist_nice, lgt_nice, label = "Nice")
+plt.grid(color="gray")
+plt.legend()
+
+T_total_paris = TESTCHANNEL_paris.end_to_end(0.3,0.8,1550e-9,transmittance_paris_interpolated, filtered_distance_paris,\
+    r0)
+T_total_nice = TESTCHANNEL_nice.end_to_end(0.3,0.8,1550e-9,transmittance_nice_interpolated, filtered_distance_nice, r0)
+
 
 plt.figure()
 plt.title("Transmittance (QSS-Micius) as a Function of Time")
 plt.ylabel("Transmittance")
 plt.xlabel("Time (GMT+1)")
-plt.plot(filtered_timelist_paris[paris_index], transmittance_paris_interpolated[paris_index], label = "Paris")
-plt.plot(filtered_timelist_paris[nice_index], transmittance_nice_interpolated[nice_index], label = "Nice")
+plt.plot(filtered_timelist_paris, T_total_paris, label = "Paris")
+plt.plot(filtered_timelist_nice, T_total_nice, label = "Nice")
 plt.grid(color="gray")
 plt.legend()
 
-plt.figure()
-plt.title("Transmittance (QSS-Micius) as a Function of Time")
-plt.ylabel("Transmittance (dB)")
-plt.xlabel("Time (GMT+1)")
-plt.plot(filtered_timelist_paris[paris_index], lgt_paris[paris_index], label = "Paris")
-plt.plot(filtered_timelist_paris[nice_index], lgt_nice[nice_index], label = "Nice")
-plt.grid(color="gray")
-plt.legend()
 plt.show()
-

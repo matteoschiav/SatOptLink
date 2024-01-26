@@ -26,6 +26,8 @@ import numpy as np
 
 from math import radians
 
+from datetime import datetime, timedelta
+
 # setup orekit
 vm = orekit.initVM()
 
@@ -255,6 +257,13 @@ class SimpleDownlinkChannel:
                     self.groundStation.frame.getElevation(pv.getPosition(), inertialFrame, absDateList[i]))
 
         # Extracting positive angles
-        index = np.where(elevation>0)
+        #index = np.where(elevation>0)
 
-        return (channelLength[index], elevation[index], timeList[index] )
+        return (channelLength, elevation, timeList )
+
+
+    def end_to_end(self, DT, DR, wl, transmittance_atm, channel_distance, r0):
+        theta_diff =  2.44 * wl / DT
+        theta_atm = 2.1 * wl / r0
+        return transmittance_atm /( (channel_distance**2) * (theta_atm**2 + theta_diff**2) )* (
+                DR**2)
