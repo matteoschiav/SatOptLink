@@ -3,29 +3,30 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 import pandas as pd
+from model import timelistgen
 
 # Creating a datetime list for the orbit propagator
-start = pd.Timestamp(datetime.now())
-start = pd.Timestamp(datetime(2024, 1, 23, 23))
-end = pd.Timestamp(datetime.now()+timedelta(hours= 12))
-end = pd.Timestamp(datetime(2024, 1, 24, 1))
-t = np.linspace(start.value, end.value, 100000)
-datetime_list = pd.to_datetime(t)
+start = (2024, 1, 23, 23)
+stop = (2024, 1, 24, 1)
+datetime_list = timelistgen(start, stop)
 
 # Using TLE from 27/07/2021 QSS-Micius
 tle_line_1 = "1 41731U 16051A   21117.42314584  .00000696  00000-0  30260-4 0  9998"
 tle_line_2 = "2 41731  97.3499  30.8507 0012844 347.0485 124.2616 15.25507799261429"
 tle = (tle_line_1, tle_line_2)
 
+# Location coordinates, altitude and name
 parisparams = [48.8566, 2.3522, 80, "Paris"]
 niceparams = [43.6274, 7.2991, 1200, "Nice"]
 
+# Creating an orbitting body from the Satellite class
 micius = ns.Satellite(tle, simType= "tle")
 
+# Creating GroundStation objects for each of the locations
 paris = ns.GroundStation(*parisparams)
 nice = ns.GroundStation(*niceparams)
 
-# Creating the channel
+# Creating the channel between the orbitting body and each ground station
 TESTCHANNEL_paris = ns.SimpleDownlinkChannel(micius, paris)
 TESTCHANNEL_nice = ns.SimpleDownlinkChannel(micius, nice)
 
@@ -33,23 +34,17 @@ TESTCHANNEL_nice = ns.SimpleDownlinkChannel(micius, nice)
 results_paris = TESTCHANNEL_paris.calculateChannelParameters(datetime_list)
 results_nice = TESTCHANNEL_nice.calculateChannelParameters(datetime_list)
 
-nice = ns.GroundStation(*niceparams)
-
-# Creating the channel
-TESTCHANNEL_nice = ns.SimpleDownlinkChannel(micius, nice)
-
-# Calculating the channel parameters for the datetime list
-results_nice = TESTCHANNEL_nice.calculateChannelParameters(datetime_list)
-
+#  Returns:
 #             - length [m]
 #             - elevation [degrees]
 #             - timeList (datetime)
 
-
+# Extracting the results
 filtered_timelist_paris = (results_paris[2])#[index]
 filtered_elevation_paris = (results_paris[1])#[index]
 filtered_elevation_nice = (results_nice[1])#[index]
 
+# Plotting the elevation
 plt.figure(dpi=600)
 plt.title("Elevation as a Function of Time")
 plt.ylabel("Elevation (degrees)")
@@ -58,27 +53,48 @@ plt.plot(filtered_timelist_paris, filtered_elevation_paris)
 plt.plot(filtered_timelist_paris, filtered_elevation_nice, color="#710193")
 plt.grid(color="gray")
 
-elevations_satellite_paris = 90-filtered_elevation_paris
-elevations_satellite_nice = 90-filtered_elevation_nice
+# Converting elevation to zenith angles for interpolation with atmospheric data
+zenith_to_satellite_paris = 90 - filtered_elevation_paris
+zenith_to_satellite_nice = 90 - filtered_elevation_nice
 
+# Reading pregenerated data for each location, see lowtran branch
 data_paris_1550 = np.genfromtxt('transmission_data_Paris.csv', delimiter=',', skip_header=1)
 data_nice_1550 = np.genfromtxt('transmission_data_Nice.csv', delimiter=',', skip_header=1)
 
-
+# Extracting data from csv
 zenith_angles_paris = data_paris_1550[:, 0]
 transmittance_values_paris = data_paris_1550[:, 1]
 
 zenith_angles_nice = data_nice_1550[:, 0]
 transmittance_values_nice = data_nice_1550[:, 1]
 
-transmittance_paris_interpolated = np.interp(elevations_satellite_paris, zenith_angles_paris, transmittance_values_paris)
-transmittance_nice_interpolated = np.interp(elevations_satellite_nice, zenith_angles_nice, transmittance_values_nice)
+transmittance_paris_interpolated = np.interp(zenith_to_satellite_paris, zenith_angles_paris, transmittance_values_paris)
+transmittance_nice_interpolated = np.interp(zenith_to_satellite_nice, zenith_angles_nice, transmittance_values_nice)
+
+# paris_index = np.where(transmittance_paris_interpolated>0.01)
+# nice_index = np.where(transmittance_nice_interpolated>0.01)
+
+lgt_paris = 10*np.log10(transmittance_paris_interpolated)
+lgt_nice = 10*np.log10(transmittance_nice_interpolated)
+
+# Plotting transmittance
 
 plt.figure()
-plt.title("Transmittance as a Function of Time")
+plt.title("Transmittance (QSS-Micius) as a Function of Time")
 plt.ylabel("Transmittance")
 plt.xlabel("Time (GMT+1)")
-plt.plot(filtered_timelist_paris, transmittance_paris_interpolated)
-plt.plot(filtered_timelist_paris, transmittance_nice_interpolated, color="#710193")
+plt.plot(filtered_timelist_paris[paris_index], transmittance_paris_interpolated[paris_index], label = "Paris")
+plt.plot(filtered_timelist_paris[nice_index], transmittance_nice_interpolated[nice_index], label = "Nice")
 plt.grid(color="gray")
+plt.legend()
+
+plt.figure()
+plt.title("Transmittance (QSS-Micius) as a Function of Time")
+plt.ylabel("Transmittance (dB)")
+plt.xlabel("Time (GMT+1)")
+plt.plot(filtered_timelist_paris[paris_index], lgt_paris[paris_index], label = "Paris")
+plt.plot(filtered_timelist_paris[nice_index], lgt_nice[nice_index], label = "Nice")
+plt.grid(color="gray")
+plt.legend()
 plt.show()
+

@@ -15,7 +15,7 @@ v00     Changes made:
 v01     Changes made:
     - added keplerian propagation
 """
-
+import pandas as pd
 import orekit
 
 from orekit.pyhelpers import download_orekit_data_curdir, setup_orekit_curdir, datetime_to_absolutedate
@@ -48,6 +48,14 @@ earth = OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
                          Constants.WGS84_EARTH_FLATTENING, ITRF)
 inertialFrame = FramesFactory.getEME2000()
 
+
+# Timelist generation
+def timelistgen(start, stop, step = 10**5):
+    begin = pd.Timestamp(datetime(*start))
+    end = pd.Timestamp(datetime(*stop))
+    t = np.linspace(begin.value, end.value, step)
+    datetime_list = pd.to_datetime(t)
+    return datetime_list
 
 # utc = TimeScalesFactory.getUTC()
 
@@ -246,4 +254,7 @@ class SimpleDownlinkChannel:
                 elevation[i] = np.rad2deg(
                     self.groundStation.frame.getElevation(pv.getPosition(), inertialFrame, absDateList[i]))
 
-        return (channelLength, elevation, timeList )
+        # Extracting positive angles
+        index = np.where(elevation>0)
+
+        return (channelLength[index], elevation[index], timeList[index] )
